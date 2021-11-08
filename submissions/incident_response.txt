@@ -1,0 +1,29 @@
+1. Incident commander name:
+	Alarming CPU utilization -- possibility of cryptomining attack
+
+2. Executive Summary of what happened:
+	Attacker able to launch a script. As a result three container spins up in our cluster (minergate, moneropool, xmrpooldotnet) 
+
+3. Summary of what was affected:
+
+	Attacker able to get access to our contol planes and able to spins up container in our cluster. These attackers utilizes a lot of Computing utilization and it can be relatable to crypto mining. 
+
+
+4. Summmry of the impact:
+	With the help of our observability stack, huge spikes are found in CPU utilization which can be easily found and alerted in grafana. Crypto mining was a critical impact and so the attacker had an admin access to run the script in our cluster.
+
+5. Summary of the remediation steps:
+
+	* Delete the pods with `kubectl delete pod <pod-name> --force`
+
+	* Tighten the security and adminstrative access , should introduce role based authentication. Always follow the best practice rotating the credentials in regular intervals
+
+	* Observability stack - Falco dashboard would alert us in such case of any security incident
+
+
+6. Summary of lessons learned:
+
+	* Security credentials should be tightened and raw use of admin privileges should not be entertained 
+
+	* Maintaining a observability stack could save us from a lot of disasters. Thanks to falco sidekick / grafana dashboards
+

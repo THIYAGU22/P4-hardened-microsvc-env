@@ -1,0 +1,10 @@
+How will you test the changes?
+	* Maintaining Sandbox environment will be used to test changes as a test environment. We can dry run the findings/ideas in sandbox env which will not affect the downline streams (prod clusters)  
+
+	* A minimal amount of prod traffic can be redirected to sandbox cluster via LoadBalancer or Service mesh configuration (Istio). We can check the accuracy of tests
+
+How will you ensure the changes don't negatively affect your cluster?
+
+	* With the help of sandbox environment we can run the tests against cluster so that we can look for any possibilities for failure/low latency/any impact on the service / control planes
+
+	* Once we are comfortable with sandbox environment and ensuring there is no warning / failure in sandbox env. we can promote to prod cluster. Prod cluster can be monitored via observability stack  by enabling sidecar injection tracing out the responses exporting the logs through prom and visualizing in grafana could help us pretty well. 

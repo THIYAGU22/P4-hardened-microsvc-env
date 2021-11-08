@@ -1,0 +1,75 @@
+Docker Threat Modeling 
+1. Spoofing -- Docker supports the addition and removal of capabilities. Removing all capabilities not required for the correct function of container. we should remove 'new_raw' capability if not required as it gives attacker access to container the ability to create spoofed network traffic
+
+2. Tampering -- Misconfiguration of docker, attacker able to take down the docker client and the attacker can able to pull the vulnerable images that could cause an critical issue. TLS CA certificate is responsible for secure communication between the docker server and client. It should be protected and tampering this file could hijack the docker client from the users control.
+
+3. Repudiation -- Changes made in Docker daemon which are not right by default may lead to misconfiguration. Able to audit /etc/docker/daemon.json to log events on the file 
+
+
+4. Information Disclosure -- API keys and database passwords must be kept secure to prevent attackers gaining access. Container file system should be set to read-only.
+
+5. Denial of Service -- Limiting the memory mechanisms which helps in prevention of DOS attacks, In general container can consumes all of the hosts memory utilization and some other containers starve for the resource utilization. 
+
+6. Elevation of privilege -- Using --privileged flag, can access all the disk mounted on hosts and it gains read-writes access to available files. Avoiding privileged access should be strictly followed. We can remediate by 'no-new-privileges' flag
+
+
+Kubernetes Threat Modeling 
+1. Spoofing -- API server is a critical component of a kubernetes cluster. Enabling attackers to compromise clusters via API servers, allowing them run code to perform malicious activity by installing 3rd party softwares/malware etc.,
+
+2. Tampering -- etcd is responsible for key-value store which serves as the primary backbone for kube cluster. Once the data lost from key store it couldnot be recovered. It should be on the top priority list and it should be protected from unauthorized reads/writes. We can set the ownership to etcd:etcd
+
+3. Repudiation -- By enabling logging we can sort out the repudiation threat. Logging the containers standard output as external logs 
+
+4. Information Disclosure --  Etcd manages and stores sensitive information such as ssh keys Oauth tokens, passwords. We should avoid dumping them in pod definitions rather we can store those confidential info in secrets is considered to be safe.
+5. Denial of Service -- Kubelets running on the worker nodes can send execessive reuests which results in DOS attacks. It can be mitigated by enabling node-restriction admission controller to vet all incoming requests and allow the requests coming only from registered nodes
+ 
+
+DOCKER BENCH RESULTS AND ANALYSIS:
+
+* 2.1 - Ensure network traffic is restricted between containers on the default bridge (Automated)
+	
+	2.1 -> INFORMATION DISCLOSURE
+
+	By default, all network traffic is allowed between containers on the same host on the
+	default network bridge. If not desired, restrict all inter-container communication. Link
+	specific containers together that require communication.
+
+	AUDIT : 
+	verify that the default network bridge has been configured to
+	restrict inter-container communication.
+
+	``docker network ls --quiet | xargs docker network inspect --format '{{ .Name }}: {{ .Options }}'`
+
+	It should return com.docker.network.bridge.enable_icc:false for the default network
+	bridge.
+
+	REMEDIATION : 
+
+	Running the docker daemon directly and pass --icc=false as an argument.
+
+* 2.17.a Ensure containers are restricted from acquiring new privileges (Automated)
+
+	2.17.a -> Elevation of privilege
+
+	With respective to CIS_Docker_Benchamark By default you should restrict containers from acquiring additional privileges via suid or
+	sgid.
+	
+	AUDIT : To confirm this setting, we should review the dockerd start-up options and a check of any
+	settings in `/etc/docker/daemon.json` should also be carried out.
+
+	We should ensure that the `--no-new-privileges` parameter is present and that it is not set
+	to false.
+
+	REMEDIATION : Running docker daemon with specified flag `dockerd --no-new-privileges`
+
+* 2.2.b Ensure the logging level is set to 'info' (Scored)
+
+	With respective to CIS_DOCKER_BENCHMARK Set Docker daemon log level to info .
+
+	AUDIT: Reviewing the dockerd startup options with
+	`ps -ef | grep dockerd`
+	Ensure that either the --log-level parameter is not present or if present, then it is set to
+	info .
+
+	REMEDIATION : Running the Docker daemon with `dockerd --log-level="info"`
+
